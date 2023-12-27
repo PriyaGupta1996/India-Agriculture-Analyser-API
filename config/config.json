@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "root",
+    "password": null,
+    "database": "India_Agriculture_dev",
+    "host": "dev.sqlite",
+    "dialect": "sqlite"
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "India_Agriculture_test",
+    "host": "test.sqlite",
+    "dialect": "sqlite"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "India_Agriculture",
+    "host": "prod.sqlite",
+    "dialect": "sqlite"
+  }
+}
