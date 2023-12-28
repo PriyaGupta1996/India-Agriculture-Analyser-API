@@ -7,7 +7,7 @@ module.exports = {
       DistrictID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        autoIncrement: true
+        primaryKey: true,
       },
       DistrictName: {
         type: Sequelize.STRING,

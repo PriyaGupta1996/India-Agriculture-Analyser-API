@@ -1,7 +1,5 @@
 const { Sequelize } = require('sequelize')
-const sequelize = new Sequelize('india-agriculture', 'apac', 'apac-jan-test', {
-    dialect: 'sqlite',
-    host: 'india-agriculture-db.sqlite',
-})
+const config = require('./config/config.json')
+const sequelize = new Sequelize(config['development'])
 
 module.exports = sequelize;

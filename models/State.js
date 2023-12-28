@@ -1,21 +1,23 @@
 const { DataTypes, Sequelize } = require('sequelize')
+const sequelize = require("../database")
+
+const State = sequelize.define("State", {
+    StateID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    StateName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+    },
+}, {
+    timestamps: true,
+    underscored: false,
+    tableName: "State"
+})
 
 
-module.exports = (Sequelize) => {
-    const District = Sequelize.define("State", {
-        StateID: {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-            autoIncrement: true
-        },
-        StateName: {
-            type: Sequelize.STRING,
-            allowNull: false
-        },
-    }, {
-        timestamp: true,
-        underscored: true,
-        tableName: "State"
-    })
-    return State;
-}
+module.exports = State

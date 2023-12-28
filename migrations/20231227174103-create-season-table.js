@@ -7,7 +7,7 @@ module.exports = {
       SeasonID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        autoIncrement: true
+        primaryKey: true,
       },
       SeasonName: {
         type: Sequelize.STRING,

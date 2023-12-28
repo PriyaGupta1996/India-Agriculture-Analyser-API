@@ -9,11 +9,13 @@ module.exports = {
       CropID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        autoIncrement: true
+        primaryKey: true,
+        autoIncrement: true,
       },
       CropName: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       createdAt: {
         type: Sequelize.DATE,

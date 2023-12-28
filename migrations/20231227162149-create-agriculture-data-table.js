@@ -7,27 +7,27 @@ module.exports = {
       DataID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        allowNull: false,
       },
       StateID: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       CropID: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       SeasonID: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       DistrictID: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       Year: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       Area: {
         type: Sequelize.FLOAT,

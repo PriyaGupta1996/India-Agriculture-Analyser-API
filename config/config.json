@@ -4,7 +4,8 @@
     "password": null,
     "database": "India_Agriculture_dev",
     "host": "dev.sqlite",
-    "dialect": "sqlite"
+    "dialect": "sqlite",
+    "logging":false
   },
   "test": {
     "username": "root",

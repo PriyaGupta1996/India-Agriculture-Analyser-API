@@ -1,21 +1,22 @@
 const { DataTypes, Sequelize } = require('sequelize')
+const sequelize = require("../database")
 
 
-module.exports = (Sequelize) => {
-    const Crop = Sequelize.define("Crop", {
-        CropID: {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-            autoIncrement: true
-        },
-        CropName: {
-            type: Sequelize.STRING,
-            allowNull: false
-        },
-    }, {
-        timestamp: true,
-        underscored: true,
-        tableName: "Crop"
-    })
-    return Crop;
-}
+const Crop = sequelize.define("Crop", {
+    CropID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    CropName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+}, {
+    timestamps: true,
+    tableName: "Crop"
+})
+
+module.exports = Crop
