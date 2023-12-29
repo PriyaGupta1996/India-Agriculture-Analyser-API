@@ -60,7 +60,6 @@ async function processRow(row, bulkInsertData) {
 
         bulkInsertData.push(createAgricultureDataObject(cropID, districtID, seasonID, stateID, rowData));
 
-        // Insert in bulk after a certain number of records (e.g., 1000 records)
         if (bulkInsertData.length === BULK_INSERT_THRESHOLD) {
             await bulkInsertAgricultureData([...bulkInsertData]);
             bulkInsertData.length = 0;
@@ -91,7 +90,7 @@ async function bulkInsertAgricultureData(data) {
             let { year, area, areaUnit, production, cropYield, productionUnit } = rowData;
 
             if (productionUnit === "nuts") {
-                production = production * (AVG_COCONUT_WEIGHT) / 1000; // converting kgs to tonnes
+                production = (production * (AVG_COCONUT_WEIGHT)) / 1000; // converting kgs to tonnes
                 cropYield = production / area;
             }
 
@@ -99,6 +98,7 @@ async function bulkInsertAgricultureData(data) {
                 production = production * (balesToTonMultiplier);
                 cropYield = production / area;
             }
+            productionUnit = "tonnes"
 
             return {
                 CropID: rowData.CropID,
