@@ -1,11 +1,11 @@
-const AgricultureData = require('./AgricultureData');
+const { Agriculture } = require('./AgricultureData');
 const Crop = require('./Crop');
 const District = require('./District');
 const Season = require('./Season');
 const State = require('./State');
 
 module.exports = {
-  AgricultureData,
+  Agriculture,
   Crop,
   District,
   Season,

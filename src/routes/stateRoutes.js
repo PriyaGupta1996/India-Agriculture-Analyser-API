@@ -15,7 +15,6 @@ router.get('/', async (req, res) => {
         console.log("Error retrieving states.")
         const response = createResponse(null, HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving states")
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(response)
-
     }
 })
 

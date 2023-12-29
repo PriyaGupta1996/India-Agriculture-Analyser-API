@@ -68,11 +68,9 @@ const AgricultureData = sequelize.define('AgricultureData', {
 
 
 //Associations
-AgricultureData.associate = () => {
-    AgricultureData.belongsTo(Crop, { foreignKey: "CropID", as: "crop" });
-    AgricultureData.belongsTo(Season, { foreignKey: "SeasonID", as: "season" });
-    AgricultureData.belongsTo(District, { foreignKey: "DistrictID", as: "district" });
-    AgricultureData.belongsTo(State, { foreignKey: "StateID", as: "state" });
-};
+AgricultureData.belongsTo(State, { foreignKey: 'StateID' });
+AgricultureData.belongsTo(District, { foreignKey: 'DistrictID' });
+AgricultureData.belongsTo(Crop, { foreignKey: 'CropID' });
+AgricultureData.belongsTo(Season, { foreignKey: 'SeasonID' });
 
-module.exports = AgricultureData;
+module.exports = { Agriculture: AgricultureData };
