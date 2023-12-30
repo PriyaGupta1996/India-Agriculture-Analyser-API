@@ -1,9 +1,24 @@
 const express = require('express');
-const { Sequelize } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const router = express.Router();
 const createResponse = require("../utils/createResponse")
 const HttpStatus = require("../constants/HttpStatus")
 const { Agriculture, State, Crop, District, Season } = require("../../models")
+const column = {
+    year: "Year",
+    production: "Production",
+    area: "Area",
+    crop: "CropName",
+    season: "SeasonName",
+    district: "DistrictName",
+    yield: "Yield",
+    state: "StateName"
+}
+const model = {
+    crop: "Crop",
+    season: "Season",
+    district: "District"
+}
 
 
 router.get('/production-per-year', async (req, res) => {
@@ -48,7 +63,6 @@ router.get('/production-per-crop', async (req, res) => {
     }
 })
 
-
 const formatAgricultureDataResponse = (DBData) => {
     return DBData.map(data => ({
         Year: data.Year,
@@ -74,6 +88,51 @@ const formatProductionPerCropData = (DBData) => {
 router.get('/:stateName', async (req, res) => {
     try {
         const stateName = req.params.stateName
+        const { crop, season, district, year, production, yield, area, sortColumn, sortOrder, } = req.query;
+        const whereCondition = {}
+        if (crop) {
+            whereCondition['$Crop.CropName$'] = { [Op.like]: `%${crop}%` };
+        }
+        if (season) {
+            whereCondition['$Season.SeasonName$'] = { [Op.like]: `%${season}%` };
+        }
+        if (district) {
+            whereCondition['$District.DistrictName$'] = { [Op.like]: `%${district}%` };
+        }
+        if (year) {
+            whereCondition['Year'] = year;
+        }
+
+        if (production) {
+            whereCondition['Production'] = production;
+        }
+
+        if (yield) {
+            whereCondition['Yield'] = yield;
+        }
+
+        if (area) {
+            whereCondition['Area'] = area;
+        }
+
+        let orderBy = [['Year', 'DESC']];
+
+        if (sortColumn && sortOrder) {
+            const isAssociatedColumn = ['crop', 'season', 'district'].includes(sortColumn);
+            if (isAssociatedColumn) {
+                orderBy = [
+                    [
+                        model[sortColumn],
+                        column[sortColumn],
+                        sortOrder.toUpperCase(),
+                    ],
+                ];
+            } else {
+                orderBy = [[sortColumn, sortOrder.toUpperCase()]];
+            }
+        }
+
+
         const agricultureData = await Agriculture.findAll({
             include: [{
                 model: State,
@@ -97,13 +156,16 @@ router.get('/:stateName', async (req, res) => {
 
             ],
             attributes: ['Production', 'Year', 'Area', 'Yield'],
+            where: whereCondition,
+            order: orderBy
         }
         )
 
         let response;
         if (!agricultureData || agricultureData.length === 0) {
-            response = createResponse(null, HttpStatus.NOT_FOUND, "Data not found for selected state.")
+            response = createResponse(null, HttpStatus.NOT_FOUND, "Data not found.")
             res.status(HttpStatus.NOT_FOUND).send(response)
+            return
         }
 
         const formattedResponse = formatAgricultureDataResponse(agricultureData)
@@ -116,8 +178,5 @@ router.get('/:stateName', async (req, res) => {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(response)
     }
 })
-
-
-
 
 module.exports = router
