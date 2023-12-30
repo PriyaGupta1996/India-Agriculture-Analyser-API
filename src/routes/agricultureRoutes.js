@@ -3,6 +3,7 @@ const { Sequelize, Op } = require("sequelize");
 const router = express.Router();
 const createResponse = require("../utils/createResponse")
 const HttpStatus = require("../constants/HttpStatus")
+const pagination = require("../constants/pagination")
 const { Agriculture, State, Crop, District, Season } = require("../../models")
 const column = {
     year: "Year",
@@ -19,6 +20,7 @@ const model = {
     season: "Season",
     district: "District"
 }
+const pageSize = pagination.pageSize;
 
 
 router.get('/production-per-year', async (req, res) => {
@@ -88,7 +90,7 @@ const formatProductionPerCropData = (DBData) => {
 router.get('/:stateName', async (req, res) => {
     try {
         const stateName = req.params.stateName
-        const { crop, season, district, year, production, yield, area, sortColumn, sortOrder, } = req.query;
+        const { crop, season, district, year, production, yield, area, sortColumn, sortOrder, page = 1 } = req.query;
         const whereCondition = {}
         if (crop) {
             whereCondition['$Crop.CropName$'] = { [Op.like]: `%${crop}%` };
@@ -133,6 +135,8 @@ router.get('/:stateName', async (req, res) => {
         }
 
 
+        const offset = (page - 1) * pageSize
+
         const agricultureData = await Agriculture.findAll({
             include: [{
                 model: State,
@@ -157,7 +161,9 @@ router.get('/:stateName', async (req, res) => {
             ],
             attributes: ['Production', 'Year', 'Area', 'Yield'],
             where: whereCondition,
-            order: orderBy
+            order: orderBy,
+            limit: pageSize,
+            offset
         }
         )
 
