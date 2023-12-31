@@ -23,14 +23,26 @@ const model = {
 const pageSize = pagination.pageSize;
 
 
-router.get('/production-per-year', async (req, res) => {
+router.get('/:stateName/production-per-year', async (req, res) => {
     try {
+        const stateName = req.params.stateName
         // Group data by year and sum the production for each year
         const productionPerYear = await Agriculture.findAll({
-            attributes: ['Year', [Sequelize.fn('SUM', Sequelize.col('Production')), 'totalProduction']],
+            attributes: ['Year', [Sequelize.fn('SUM', Sequelize.col('Production')), 'TotalProduction']],
+            include: [
+                {
+                    model: State,
+                    attributes: ['StateName'],
+                    where: {
+                        StateName: stateName
+                    }
+                }
+            ],
             group: ['Year'],
+            raw: true
         });
-        response = createResponse(productionPerYear, HttpStatus.OK, "Data retrieved successfully.")
+        const formattedResponse = formatProductionPerYearData(productionPerYear)
+        response = createResponse(formattedResponse, HttpStatus.OK, "Data retrieved successfully.")
         res.status(HttpStatus.OK).send(response)
 
     } catch (error) {
@@ -40,16 +52,25 @@ router.get('/production-per-year', async (req, res) => {
     }
 })
 
-router.get('/production-per-crop', async (req, res) => {
+router.get('/:stateName/production-per-crop', async (req, res) => {
     try {
+        const stateName = req.params.stateName
         // Group data by year and sum the production for each year
         const productionPerCrop = await Agriculture.findAll({
-            attributes: [[Sequelize.fn('SUM', Sequelize.col('Production')), 'Total Production']],
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('Production')), 'TotalProduction']],
             include: [
+                {
+                    model: State,
+                    attributes: ['StateName'],
+                    where: {
+                        StateName: stateName
+                    }
+                },
                 {
                     model: Crop,
                     attributes: ['CropName', 'CropID']
-                }
+                },
+
             ],
             group: ['Crop.CropID'],
             raw: true
@@ -65,10 +86,25 @@ router.get('/production-per-crop', async (req, res) => {
     }
 })
 
+const formatProductionPerCropData = (DBData) => {
+    return DBData.map(data => ({
+        TotalProduction: data["TotalProduction"],
+        Crop: data["Crop.CropName"]
+    }));
+}
+const formatProductionPerYearData = (DBData) => {
+    return DBData.map(data => ({
+        TotalProduction: data["TotalProduction"],
+        Year: data["Year"]
+    }));
+}
+
+
 const formatAgricultureDataResponse = (DBData) => {
     return DBData.map(data => ({
         Year: data.Year,
         Area: data.Area,
+        id: data.DataID,
         AreaUnit: data.AreaUnit,
         Production: data.Production,
         ProductionUnit: data.ProductionUnit,
@@ -77,13 +113,6 @@ const formatAgricultureDataResponse = (DBData) => {
         Crop: data.Crop ? data.Crop.CropName : null,
         Season: data.Season ? data.Season.SeasonName : null,
         District: data.District ? data.District.DistrictName : null,
-    }));
-}
-
-const formatProductionPerCropData = (DBData) => {
-    return DBData.map(data => ({
-        Production: data["Total Production"],
-        Crop: data["Crop.CropName"]
     }));
 }
 
@@ -159,7 +188,7 @@ router.get('/:stateName', async (req, res) => {
             },
 
             ],
-            attributes: ['Production', 'Year', 'Area', 'Yield'],
+            attributes: ['DataID', 'Production', 'Year', 'Area', 'Yield'],
             where: whereCondition,
             order: orderBy,
             limit: pageSize,
