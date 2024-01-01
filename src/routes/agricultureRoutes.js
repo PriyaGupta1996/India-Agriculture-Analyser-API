@@ -3,7 +3,7 @@ const { Sequelize, Op } = require("sequelize");
 const router = express.Router();
 const createResponse = require("../utils/createResponse")
 const HttpStatus = require("../constants/HttpStatus")
-const pagination = require("../constants/pagination")
+const { PAGE_SIZE, PAGE_NO } = require("../constants/pagination")
 const { Agriculture, State, Crop, District, Season } = require("../../models")
 const column = {
     year: "Year",
@@ -20,7 +20,6 @@ const model = {
     season: "Season",
     district: "District"
 }
-const pageSize = pagination.pageSize;
 
 
 router.get('/:stateName/production-per-year', async (req, res) => {
@@ -119,7 +118,7 @@ const formatAgricultureDataResponse = (DBData) => {
 router.get('/:stateName', async (req, res) => {
     try {
         const stateName = req.params.stateName
-        const { crop, season, district, year, production, yield, area, sortColumn, sortOrder, page = 1 } = req.query;
+        const { crop, season, district, year, production, yield, area, sortColumn, sortOrder, page = PAGE_NO, pageSize = PAGE_SIZE } = req.query;
         const whereCondition = {}
         if (crop) {
             whereCondition['$Crop.CropName$'] = { [Op.like]: `%${crop}%` };
@@ -166,7 +165,7 @@ router.get('/:stateName', async (req, res) => {
 
         const offset = (page - 1) * pageSize
 
-        const agricultureData = await Agriculture.findAll({
+        const agricultureData = await Agriculture.findAndCountAll({
             include: [{
                 model: State,
                 attributes: ['StateName'],
@@ -192,7 +191,8 @@ router.get('/:stateName', async (req, res) => {
             where: whereCondition,
             order: orderBy,
             limit: pageSize,
-            offset
+            offset,
+
         }
         )
 
@@ -203,7 +203,7 @@ router.get('/:stateName', async (req, res) => {
             return
         }
 
-        const formattedResponse = formatAgricultureDataResponse(agricultureData)
+        const formattedResponse = { totalCount: agricultureData.count, records: formatAgricultureDataResponse(agricultureData.rows) }
 
         response = createResponse(formattedResponse, HttpStatus.OK, "Data retrieved successfully.")
         res.status(HttpStatus.OK).send(response)
