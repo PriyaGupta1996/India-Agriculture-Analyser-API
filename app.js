@@ -20,6 +20,6 @@ app.use('/api/token', authRoutes)
 app.use('/api/state', verifyToken, stateRoutes);
 app.use('/api/agriculture', verifyToken, agricultureRoutes)
 
-app.listen(8080, () => {
-    console.log("I am listening on port 8080")
+app.listen(PORT, () => {
+    console.log(`I am listening on port ${PORT}`)
 })
