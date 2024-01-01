@@ -1,5 +1,5 @@
 const pagination = {
-    PAGE_SIZE: 20,
+    PAGE_SIZE: 10,
     PAGE_NO: 1
 }
 

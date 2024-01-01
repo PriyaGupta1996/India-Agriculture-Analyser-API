@@ -7,22 +7,8 @@ const dummy_user_id = uuidv4()
 const secretKey = 'APAC';
 const createResponse = require("../utils/createResponse")
 const HttpStatus = require("../constants/HttpStatus")
+const { getToken } = require("../controllers/authController")
 
-router.get('/', (req, res) => {
-    const apiKeyClient = req.headers['x-api-key'];
-    console.log("x-api-key", apiKeyClient)
-    if (apiKeyClient === apiKeyServer) {
-        const payload = {
-            userId: dummy_user_id
-        }
-        const token = jwt.sign(payload, secretKey, { expiresIn: '15m' });
-        const response = createResponse(token, HttpStatus.OK, "Token generated successfully");
-        res.status(HttpStatus.OK).send(response)
-    } else {
-        console.log("Invalid API key")
-        const response = createResponse(null, HttpStatus.UNAUTHORIZED, "Not Authorized. ");
-        res.status(HttpStatus.UNAUTHORIZED).send(response)
-    }
-});
+router.get('/', getToken)
 
 module.exports = router
