@@ -1,7 +1,7 @@
 const fs = require('fs');
 const sequelize = require("../database");
 const csv = require("csv-parser");
-const { AgricultureData, Crop, District, Season, State } = require("../models");
+const { Agriculture, Crop, District, Season, State } = require("../models");
 
 const AVG_COCONUT_WEIGHT = 1.4;
 const balesToTonMultiplier = 0.24;
@@ -37,36 +37,41 @@ async function populateState(stateName) {
     return populateEntity(State, 'StateName', stateName);
 }
 
+function validateRowData(row) {
+    return row['Crop'].length > 0 && row['Area'].toString().length > 0 && row['Production'].toString().length > 0;
+}
+
 async function processRow(row, bulkInsertData) {
-    try {
-        const rowData = {
-            state: row['State'].toLowerCase(),
-            district: row['District'].toLowerCase(),
-            season: row['Season'].toLowerCase(),
-            year: row['Year'].split('-')[0],
-            crop: row['Crop'].toLowerCase(),
-            area: row['Area'],
-            areaUnit: row['Area Units'].toLowerCase(),
-            production: row['Production'],
-            cropYield: row['Yield'],
-            productionUnit: row['Production Units'].toLowerCase(),
-        };
-        const [cropID, districtID, seasonID, stateID] = await Promise.all([
-            populateCrop(rowData["crop"]),
-            populateDistrict(rowData["district"]),
-            populateSeason(rowData["season"]),
-            populateState(rowData["state"]),
-        ]);
+    if (validateRowData(row))
+        try {
+            const rowData = {
+                state: row['State'].toLowerCase(),
+                district: row['District'].toLowerCase(),
+                season: row['Season'].toLowerCase(),
+                year: row['Year'].split('-')[0],
+                crop: row['Crop'].toLowerCase(),
+                area: row['Area'],
+                areaUnit: row['Area Units'].toLowerCase(),
+                production: row['Production'],
+                cropYield: row['Yield'],
+                productionUnits: row['Production Units'].toLowerCase(),
+            };
+            const [cropID, districtID, seasonID, stateID] = await Promise.all([
+                populateCrop(rowData["crop"]),
+                populateDistrict(rowData["district"]),
+                populateSeason(rowData["season"]),
+                populateState(rowData["state"]),
+            ]);
 
-        bulkInsertData.push(createAgricultureDataObject(cropID, districtID, seasonID, stateID, rowData));
+            bulkInsertData.push(createAgricultureDataObject(cropID, districtID, seasonID, stateID, rowData));
 
-        if (bulkInsertData.length === BULK_INSERT_THRESHOLD) {
-            await bulkInsertAgricultureData([...bulkInsertData]);
-            bulkInsertData.length = 0;
+            if (bulkInsertData.length === BULK_INSERT_THRESHOLD) {
+                await bulkInsertAgricultureData([...bulkInsertData]);
+                bulkInsertData.length = 0;
+            }
+        } catch (error) {
+            console.log('Error in processing row', error);
         }
-    } catch (error) {
-        console.log('Error in processing row', error);
-    }
 }
 
 function createAgricultureDataObject(cropID, districtID, seasonID, stateID, rowData) {
@@ -79,7 +84,7 @@ function createAgricultureDataObject(cropID, districtID, seasonID, stateID, rowD
         Area: rowData.area,
         AreaUnit: rowData.areaUnit,
         Production: rowData.production,
-        ProductionUnit: rowData.productionUnit,
+        ProductionUnits: rowData.productionUnits,
         Yield: rowData.cropYield,
     };
 }
@@ -87,18 +92,18 @@ function createAgricultureDataObject(cropID, districtID, seasonID, stateID, rowD
 async function bulkInsertAgricultureData(data) {
     try {
         const processedData = data.map((rowData) => {
-            let { year, area, areaUnit, production, cropYield, productionUnit } = rowData;
+            let { Production, ProductionUnits, Yield, Area } = rowData;
 
-            if (productionUnit === "nuts") {
-                production = (production * (AVG_COCONUT_WEIGHT)) / 1000; // converting kgs to tonnes
-                cropYield = production / area;
+            if (ProductionUnits === "nuts") {
+                Production = (Production * (AVG_COCONUT_WEIGHT)) / 1000; // converting kgs to tonnes
+                Yield = Production / Area;
             }
 
-            if (productionUnit === "bales") {
-                production = production * (balesToTonMultiplier);
-                cropYield = production / area;
+            if (ProductionUnits === "bales") {
+                Production = Production * (balesToTonMultiplier);
+                Yield = Production / Area;
             }
-            productionUnit = "tonnes"
+            ProductionUnits = "tonnes"
 
             return {
                 CropID: rowData.CropID,
@@ -108,13 +113,12 @@ async function bulkInsertAgricultureData(data) {
                 Year: rowData.Year,
                 Area: rowData.Area,
                 AreaUnit: rowData.AreaUnit,
-                Production: rowData.Production,
-                ProductionUnit: rowData.ProductionUnit,
-                Yield: rowData.Yield,
+                Production,
+                ProductionUnit: ProductionUnits,
+                Yield,
             };
         });
-
-        await AgricultureData.bulkCreate(processedData, { ignoreDuplicates: true });
+        await Agriculture.bulkCreate(processedData, { ignoreDuplicates: true });
     } catch (error) {
         console.log('Error in bulkInsertAgricultureData', error);
         throw new Error('Error in bulkInsertAgricultureData', error);
